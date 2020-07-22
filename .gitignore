@@ -1,3 +1,7 @@
+# Unique token (this should never go to github. If you change how the token is stored, including the name, update the line below too)
+token.p
+token.*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
