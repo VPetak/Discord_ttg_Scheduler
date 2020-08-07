@@ -41,6 +41,8 @@ DEBUG_OFFLINEMODE = True
 
 # some things (like the nested lists in self.poll) might be better off as objects
 
+# find a more efficient way to check if a voter already voted (the issue is voterlist is a list of objects, but how does one find a name using "if author in voterlist[day]:" or something similar
+
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 # START
 
@@ -85,6 +87,8 @@ class Ballot():
         #redo as an object?
 
         self.voterlist = [[], [], [], [], [], [], [], [], [], [], [], [], [], []] # a list of lists, each for corresponds to a day, tracks who voted for which day to avoid double votes and let people correct their votes. Type = voteobj object
+        self.voternames = [[], [], [], [], [], [], [], [], [], [], [], [], [], []] #this list is used specifically for seeing is someone already voted, TO DO: find a more efficient way to do this using only voterlist if possible
+
         # self.polltime is a list of every hour for every day, used to determine a suggested start and end time
         self.polltime = []
         for i in range(0, len(self.poll)):
@@ -245,7 +249,7 @@ class Ballot():
         else:
 
             #check if this person already voted
-            if str(author) in self.voterlist and DEBUG_MULTIVOTE == False:
+            if author in self.voternames[day] and DEBUG_MULTIVOTE == False:
                 return("You may only vote once, " + str(author))
             
             # first convert the time to a 24hr format, also catches noon and midnight for easier use
@@ -257,6 +261,7 @@ class Ballot():
             print("time: " + time)
 
             self.voterlist[day].append(voteobj(author, day, time)) #log this vote into our list for later use
+            self.voternames[day].append(author) #used for checking that nobody votes twice
             
             timerange = time.split("-") #split the time range into two values in an array with 2 indices, check if it spills over past 12 midnight
             past12 = False
