@@ -17,7 +17,7 @@ token = pickle.load(open("token.p", "rb"))
 DEBUG_MULTIVOTE = False
 
 # Runs the code without using commands or putting the bot online
-DEBUG_OFFLINEMODE = False
+DEBUG_OFFLINEMODE = True
 
 ## TO DO LIST ## ------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -85,7 +85,6 @@ class Ballot():
         #redo as an object?
 
         self.voterlist = [[], [], [], [], [], [], [], [], [], [], [], [], [], []] # a list of lists, each for corresponds to a day, tracks who voted for which day to avoid double votes and let people correct their votes. Type = voteobj object
-
         # self.polltime is a list of every hour for every day, used to determine a suggested start and end time
         self.polltime = []
         for i in range(0, len(self.poll)):
@@ -203,6 +202,7 @@ class Ballot():
         #global self.polltime
         #global self.voterlist
         #global self.timetuple
+        global DEBUG_MULTIVOTE
         arg = arg.upper()
         time = time.lower()
         if arg == 'A':
@@ -243,6 +243,11 @@ class Ballot():
         elif time == None: 
             return( "Please specify a time range in 24hr format, ex\n!vote A 19-1\n This would vote for whatever day A represents from 7pm to 1am") 
         else:
+
+            #check if this person already voted
+            if str(author) in self.voterlist and DEBUG_MULTIVOTE == False:
+                return("You may only vote once, " + str(author))
+            
             # first convert the time to a 24hr format, also catches noon and midnight for easier use
             if "m" in time or "n" in time: #check if am/pm format, if not there's no point in doing the conversion. Noon and Midnight or abbreviated mdnt are covered since it looks for m and n
                 for t in range(0, len(self.timetuple)):
@@ -312,10 +317,21 @@ if DEBUG_OFFLINEMODE == True:
     print("DEBUG: OFFLINE TEST")
     testballot = Ballot()
 
+    print(testballot.schedule(["#1", "#2", "#3"]))
+    
+    print(testballot.castvote("A", "2pm-3pm", "username"))
+    print(testballot.castvote("A", "2pm-3pm", "username2"))
+    print(testballot.castvote("A", "2pm-3pm", "otheruser"))
+    print(testballot.castvote("A", "2pm-3pm", "username"))
+
+    print(testballot.assign())
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------  
 
-ballot = Ballot() #create an instance of the Ballot class
+if DEBUG_MULTIVOTE == True:
+    print("DEBUG: MULTIVOTE ENABLED!\nPLEASE DISABLE MULTIVOTE OR USERS WILL BE ABLE TO VOTE MORE THAN ONCE")
+if DEBUG_OFFLINEMODE == False:
+    ballot = Ballot() #create an instance of the Ballot class
 
-#bot.add_cog(Cmds())
-bot.run(token) #should probably be the very last thing that happens in the code
+    #bot.add_cog(Cmds())
+    bot.run(token) #should probably be the very last thing that happens in the code
