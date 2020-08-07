@@ -17,7 +17,7 @@ token = pickle.load(open("token.p", "rb"))
 DEBUG_MULTIVOTE = False
 
 # Runs the code without using commands or putting the bot online
-DEBUG_OFFLINEMODE = True
+DEBUG_OFFLINEMODE = False
 
 ## TO DO LIST ## ------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -292,6 +292,7 @@ class Ballot():
 
 #class Cmds(commands.Cog):
 class Cmds():
+
     
     @bot.command()
     async def close(ctx):
@@ -305,7 +306,7 @@ class Cmds():
         if len(args) < 1:
             await ctx.send("Please enter the possible times you want to schedule separated by spaces (Use _ for spaces like 'Monday_4/20_4:20PM)")
         else:
-            #ballot = Ballot() #create an instance of the Ballot class     this line causes Sched up to always be false. Look into later, probably has to do with scope
+            ballot.__init__() #create an instance of the Ballot class     this line causes Sched up to always be false. Look into later, probably has to do with scope
             # TO DO: When an old ballot is used, it's data persists, so make sure to sanitize the data when the ballot is closed
             await ctx.send(ballot.schedule(args))
 
@@ -328,6 +329,14 @@ if DEBUG_OFFLINEMODE == True:
     print(testballot.castvote("A", "2pm-3pm", "username2"))
     print(testballot.castvote("A", "2pm-3pm", "otheruser"))
     print(testballot.castvote("A", "2pm-3pm", "username"))
+
+    print(testballot.assign())
+    
+    testballot.__init__()
+    print(testballot.schedule(["x", "y", "z"]))
+    
+    print(testballot.castvote("B", "5pm-6pm", "username"))
+    print(testballot.castvote("B", "5pm-6pm", "username2"))
 
     print(testballot.assign())
 
