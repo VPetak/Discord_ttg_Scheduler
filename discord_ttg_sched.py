@@ -9,9 +9,17 @@ token = pickle.load(open("token.p", "rb"))
 # ^ have a binary file encoded using pickle in the same directory in order for this to work.
 # If you modify this just make sure it receives the token in string form somehow, as it is unwise to have it in plaintext here
 
+#-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+# DEBUG VARIABLES
+# Use these global finals for testing, all of them should be set to False, and none of them should be modified later in the code
 
+# Determines whether the same person can vote more than once
+DEBUG_MULTIVOTE = False
 
-## TO DO LIST ## -----------------------------------------
+# Runs the code without using commands or putting the bot online
+DEBUG_OFFLINEMODE = False
+
+## TO DO LIST ## ------------------------------------------------------------------------------------------------------------------------------------------------
 
 # make it so each person can only vote on a specified time once
 
@@ -80,7 +88,7 @@ class Ballot():
 
         # self.polltime is a list of every hour for every day, used to determine a suggested start and end time
         self.polltime = []
-        for i in range(0, 14):
+        for i in range(0, len(self.poll)):
             self.polltime.append([[-1, "mdnt"], [-1, "1am"], [-1, "2am"], [-1, "3am"], [-1, "4am"], [-1, "5am"], [-1, "6am"], [-1, "7am"], [-1, "8am"], [-1, "9am"], [-1, "10am"],
                     [-1, "11am"], [-1, "noon"], [-1, "1pm"], [-1, "2pm"], [-1, "3pm"], [-1, "4pm"], [-1, "5pm"], [-1, "6pm"], [-1, "7pm"], [-1, "8pm"], [-1, "9pm"], [-1, "10pm"], [-1, "11pm"]])
 
@@ -104,12 +112,12 @@ class Ballot():
             elif self.poll[i][1] == 0:
                 ret_str = ret_str + "\n-------------------------\n" + self.poll[i][0] + ": no votes"
             else:
-                ret_str = ret_str + "\n-------------------------\n" + str(poll[i][0]) + ": " + str(poll[i][1]) + "\nTime:\n"
-                for j in range(0,len(polltime)): #len(polltime was 23 previously, but doing this should be less work when I add 30 min intervals
+                ret_str = ret_str + "\n-------------------------\n" + str(self.poll[i][0]) + ": " + str(self.poll[i][1]) + "\nTime:\n"
+                for j in range(0,len(self.polltime)): #len(polltime was 23 previously, but doing this should be less work when I add 30 min intervals
                     if self.polltime[i][j][0] < 1:
                         continue
                     else:
-                        ret_str = ret_str + str(polltime[i][j][1]) + " " + str(polltime[i][j][0]) + "  "
+                        ret_str = ret_str + str(self.polltime[i][j][1]) + " " + str(self.polltime[i][j][0]) + "  "
         return ret_str
 
 
@@ -175,13 +183,10 @@ class Ballot():
         self.sched_up = False
         return retstr
 
-    def initpoll(self):
-        print("IT WORKED")
     
     def schedule(self, args):
         #global self.sched_up
         #global self.poll
-        self.initpoll()
         retStr = ''
         for i in range(0, len(args)):
             retStr = retStr + "\n" + self.poll[i][0] + " " + args[i]
@@ -298,7 +303,17 @@ class Cmds():
     async def vote(ctx, arg, time):
         await ctx.send(ballot.castvote(arg, time, ctx.author))
 
-#-----------------------------------------------------------------------------------------------------------------------------------------------------------------        
+#-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# DEBUG OFFLINE TEST
+# Test logic for the Ballot class by writing code in the if statement. DEBUG_OFFLINEMODE must be False.
+# This is in place of commands, so make the code mimic what typical users would do
+if DEBUG_OFFLINEMODE == True:
+    print("DEBUG: OFFLINE TEST")
+    testballot = Ballot()
+
+
+#-----------------------------------------------------------------------------------------------------------------------------------------------------------------  
 
 ballot = Ballot() #create an instance of the Ballot class
 
