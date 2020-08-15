@@ -17,7 +17,7 @@ token = pickle.load(open("token.p", "rb"))
 DEBUG_MULTIVOTE = False
 
 # Runs the code without using commands or putting the bot online
-DEBUG_OFFLINEMODE = False
+DEBUG_OFFLINEMODE = True
 
 ## TO DO LIST ## ------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -56,7 +56,7 @@ async def on_ready():
 
 # OBJECTS
 
-class voteobj(object): #this object class logs details of every vote cast
+class voteobj: #this object class logs details of every vote cast
     def __init__(self, name, day, time):
         self.name = name
         self.day = int(day)
@@ -65,7 +65,17 @@ class voteobj(object): #this object class logs details of every vote cast
         retString = str(self.name) + ": day" + str(self.day) + " time" + self.time
         return retString
 
-class resultobj(object): #this object class is used by the assign() method and stores best day, start of optimal time range, and end of optimal time range
+class pollobj: #this is meant to replace poll, polltime, and voterlist by putting all that info in one object containing the number of votes for a given day, optimal times, and a list of voters
+    #the name of the day will be stored in a dictionary
+    def __init__(self):
+        self.name = ""
+        self.votes = 0
+        self.tstart = 6
+        self.tend = 24
+        self.voters = [] #could use length of voters list as the # of votes. Get some easy uniqueness to voters by using a set. If you have a set and add kevin twice, you only have one instance. A set is a dict with no associated values.
+
+
+class resultobj: #this object class is used by the assign() method and stores best day, start of optimal time range, and end of optimal time range
     def __init__(self, day, tstart, tend):
         self.day = int(day)
         self.tstart = tstart
@@ -84,10 +94,13 @@ class Ballot():
         # for the purposes of this 0-6 will count as the same day, so a session can go from Monday 8pm-2am without making things confusing
         # only need for this is to track how late people want to be up, and how late the DM should expect players to be on
         self.poll = [['A', -1, 0], ['B', -1, 1], ['C', -1, 2], ['D', -1, 3], ['E', -1, 4], ['F', -1, 5], ['G', -1, 6], ['H', -1, 7], ['I', -1, 8], ['J', -1, 9], ['K', -1, 10], ['L', -1, 11], ['M', -1, 12], ['N', -1, 13]]#[day name, votes, index]
-        #redo as an object?
+
 
         self.voterlist = [[], [], [], [], [], [], [], [], [], [], [], [], [], []] # a list of lists, each for corresponds to a day, tracks who voted for which day to avoid double votes and let people correct their votes. Type = voteobj object
         self.voternames = [[], [], [], [], [], [], [], [], [], [], [], [], [], []] #this list is used specifically for seeing is someone already voted, TO DO: find a more efficient way to do this using only voterlist if possible
+
+        self.ballotbox = {} #will contain the voteobj's, replacing the need for voterlist, poll, and polltime
+
 
         # self.polltime is a list of every hour for every day, used to determine a suggested start and end time
         self.polltime = []
@@ -107,8 +120,6 @@ class Ballot():
 
     def showPoll(self):
         ret_str = ""
-        #global self.poll
-        #global self.polltime
         for i in range(0, len(poll)): #len(poll) was 14 originally, but I changed it just in case I increase the maximum number of days to vote on
             if self.poll[i][1] == -1:
                 return ret_str
@@ -126,10 +137,6 @@ class Ballot():
 
 
     def assign(self): #this function will be called at a certain time (determined by an automatic deadline command) or a manual command
-        #global self.poll
-        #global self.polltime
-        #global self.sched_up
-        #global self.voterlist
         if self.sched_up == False:
             return str("No schedule to assess")
 
@@ -144,7 +151,7 @@ class Ballot():
         no[1].day = polls[len(polls)-2][2]
         no[2].day = polls[len(polls)-3][2]
 
-
+        """
         for d in range(0, 3):
             for i in range(7, 24): #find the best time range, before midnight 
                 if self.polltime[no[d].day][i][0] > self.polltime[no[d].day][no[d].tstart][0]: #logic for best start time, check if this next hour has more votes than the previous best
@@ -169,7 +176,16 @@ class Ballot():
                     break
                 else:
                     continue
+        """
+        print("XXXXXXXXXXXXXXXXXXXXXX      " + str(self.ballotbox["A"].votes)) 
+        sortedballotkeys = sorted(self.ballotbox, key=lambda x: self.ballotbox[x].votes, reverse=True)
+    
+        for key in sortedballotkeys:
+            print(f"############# {key} : {self.ballotbox[key].votes}")
             
+        
+        
+        """    
         retstr = "Optimal times:\n-------------\n" + self.poll[no[0].day][0] + "\nfrom " + self.polltime[no[0].day][no[0].tstart][1] + " to " + self.polltime[no[0].day][no[0].tend][1] + "\n Participants for this day: "
         for i in range(0, len(self.voterlist[no[0].day])):
             retstr = retstr + str(self.voterlist[no[0].day][i].name) + " "
@@ -184,31 +200,26 @@ class Ballot():
             for i in range(0, len(self.voterlist[no[2].day])):
                 retstr = retstr + str(self.voterlist[no[2].day][i].name) + " "
         self.sched_up = False
+        """
         return retstr
 
     
     def schedule(self, args):
-        #global self.sched_up
-        #global self.poll
         retStr = ''
-        for i in range(0, len(args)):
-            retStr = retStr + "\n" + self.poll[i][0] + " " + args[i]
-            self.poll[i][1] = 0
-            self.poll[i][0] = args[i] #save the string of the day to be voted on
+        for i in args:
+            retStr = retStr + "\n" + i
+            self.ballotbox[i] = pollobj() #make a new pollobj for each day scheduled as a possible date
+            self.ballotbox[i].name = i
         self.sched_up = True
         return("Vote on the following days:\n\n\n" + retStr.replace("_", " ") + "\n--------------\nExample: !vote A 5pm-11pm")
 
     
     def castvote(self, arg, time, author):
         print("vote: " + arg + " " + time)
-        #global self.sched_up
-        #global self.poll
-        #global self.polltime
-        #global self.voterlist
-        #global self.timetuple
         global DEBUG_MULTIVOTE
         arg = arg.upper()
         time = time.lower()
+        """
         if arg == 'A':
             day = 0
         elif arg == 'B':
@@ -239,50 +250,54 @@ class Ballot():
             day = 13
         else:
             day = -1
+        """
 
         if self.sched_up == False:
             return("Sorry! There's no schedule to vote on!")
-        elif day == -1 or self.poll[day][1] == -1:
+        elif arg not in self.ballotbox:
             return("Invalid vote: " + arg + " :no_smoking:")
         elif time == None: 
             return( "Please specify a time range in 24hr format, ex\n!vote A 19-1\n This would vote for whatever day A represents from 7pm to 1am") 
         else:
-
-            #check if this person already voted
-            if author in self.voternames[day] and DEBUG_MULTIVOTE == False:
-                return("You may only vote once, " + str(author))
             
+            #check if this person already voted
+            if author in self.ballotbox[arg].voters and DEBUG_MULTIVOTE == False:
+                return("You may only vote once for a given day in the poll, however you are encouraged to vote for multiple days if your schedule allows it.")
+
             # first convert the time to a 24hr format, also catches noon and midnight for easier use
             if "m" in time or "n" in time: #check if am/pm format, if not there's no point in doing the conversion. Noon and Midnight or abbreviated mdnt are covered since it looks for m and n
                 for t in range(0, len(self.timetuple)):
                     time = time.replace(self.timetuple[t][0], str(self.timetuple[t][1]))
             
-            self.poll[day][1] = self.poll[day][1] + 1 #increment the day's poll first
+            self.ballotbox[arg].votes += 1 #increment the day's poll first
             print("time: " + time)
 
-            self.voterlist[day].append(voteobj(author, day, time)) #log this vote into our list for later use
-            self.voternames[day].append(author) #used for checking that nobody votes twice
+            #self.voterlist[day].append(voteobj(author, day, time)) #log this vote into our list for later use
+            #self.voternames[day].append(author) #used for checking that nobody votes twice
+
+            self.ballotbox[arg].voters.append(author) #used for checking that nobody votes twice. Log the voter in a list of voters
             
             timerange = time.split("-") #split the time range into two values in an array with 2 indices, check if it spills over past 12 midnight
             past12 = False
             print("timerange[0-1]: " + timerange[0] + " - " + timerange[1])
-            if int(timerange[0]) > int(timerange[1]):
+            timerangeint = [int(i) for i in timerange]
+            
+            if int(timerangeint[0]) > int(timerangeint[1]) or int(timerangeint[0]) in range(0,6):
                 past12 = True
                 print("past12: TRUE")
+            
             if past12 == False:
-                for i in range(int(timerange[0]), int(timerange[1])): #if the range doesn't go past 12, simply vote for every hour in this range
-                    if self.polltime[day][i][0] == -1:
-                        self.polltime[day][i][0] = 0
-                    self.polltime[day][i][0] += 1
+                if timerangeint[0] > self.ballotbox[arg].tstart:
+                    self.ballotbox[arg].tstart = timerangeint[0]
+                if timerangeint[1] < self.ballotbox[arg].tend:
+                    self.ballotbox[arg].tend = timerangeint[1]
             else:
-                for i in range(int(timerange[0]), 24): #otherwise we have to give it a range for the time before 12 and another for after
-                    if self.polltime[day][i][0] == -1:
-                        self.polltime[day][i][0] = 0
-                    self.polltime[day][i][0] = self.polltime[day][i][0] + 1
-                for i in range(0, int(timerange[1])): 
-                    if self.polltime[day][i][0] == -1: 
-                        self.polltime[day][i][0] = 0
-                    self.polltime[day][i][0] = self.polltime[day][i][0] + 1 
+                if timerangeint[0] > self.ballotbox[arg].tstart or (timerangeint[0] >= 0 and timerangeint[0] < 6 and (self.ballotbox[arg].tstart in range(6, 24))):
+                    #this if statement is long, but it checks to see if start time is past midnight and modifies tstart accordingly REVIEW THIS LATER
+                    self.ballotbox[arg].tstart = timerangeint[0]
+                if timerangeint[1] < self.ballotbox[arg].tend or timerangeint[1] in range(6, 24):
+                    self.ballotbox[arg].tend = timerange[1]
+            
             return("Your vote for " + arg + " has been cast\n Thanks for voting, " + str(author) + "!")
     
 
@@ -293,12 +308,9 @@ class Ballot():
 #class Cmds(commands.Cog):
 class Cmds():
 
-    
     @bot.command()
     async def close(ctx):
-        #global self.sched_up
         result = ballot.assign()
-        #self.sched_up = False
         await ctx.send(result)
 
     @bot.command()
@@ -306,8 +318,7 @@ class Cmds():
         if len(args) < 1:
             await ctx.send("Please enter the possible times you want to schedule separated by spaces (Use _ for spaces like 'Monday_4/20_4:20PM)")
         else:
-            ballot.__init__() #create an instance of the Ballot class     this line causes Sched up to always be false. Look into later, probably has to do with scope
-            # TO DO: When an old ballot is used, it's data persists, so make sure to sanitize the data when the ballot is closed
+            ballot.__init__() #create an instance of the Ballot class
             await ctx.send(ballot.schedule(args))
 
     @bot.command()
@@ -323,7 +334,7 @@ if DEBUG_OFFLINEMODE == True:
     print("DEBUG: OFFLINE TEST")
     testballot = Ballot()
 
-    print(testballot.schedule(["#1", "#2", "#3"]))
+    print(testballot.schedule(["A", "B", "C"]))
     
     print(testballot.castvote("A", "2pm-3pm", "username"))
     print(testballot.castvote("A", "2pm-3pm", "username2"))
@@ -332,13 +343,13 @@ if DEBUG_OFFLINEMODE == True:
 
     print(testballot.assign())
     
-    testballot.__init__()
-    print(testballot.schedule(["x", "y", "z"]))
+    #testballot.__init__()
+    #print(testballot.schedule(["x", "y", "z"]))
     
-    print(testballot.castvote("B", "5pm-6pm", "username"))
-    print(testballot.castvote("B", "5pm-6pm", "username2"))
+    #print(testballot.castvote("B", "5pm-6pm", "username"))
+    #print(testballot.castvote("B", "5pm-6pm", "username2"))
 
-    print(testballot.assign())
+    #print(testballot.assign())
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------  
 
