@@ -151,56 +151,13 @@ class Ballot():
         no[1].day = polls[len(polls)-2][2]
         no[2].day = polls[len(polls)-3][2]
 
-        """
-        for d in range(0, 3):
-            for i in range(7, 24): #find the best time range, before midnight 
-                if self.polltime[no[d].day][i][0] > self.polltime[no[d].day][no[d].tstart][0]: #logic for best start time, check if this next hour has more votes than the previous best
-                    no[d].tstart = i
-                else:
-                    continue
-            for i in range(0, 7): #logic for midnight to 6 start time votes, but seriously who would start this late?
-                if self.polltime[no[d].day][i][0] > self.polltime[no[d].day][no[d].tstart][0]: 
-                    no[d].tstart = i
-                else:
-                    continue
-            no[d].tend = no[d].tstart # prevent the next loop from checking before the start point, since it's impossible to end before the start time, and it would be a waste of time to check
-            for i in range(no[d].tstart, 24): #find the best end time , before midnight
-                if self.polltime[no[d].day][i][0] < self.polltime[no[d].day][no[d].tend][0]: #logic for best end time, check to see if the next hour is lower and sets the endpoint there
-                    no[d].tend = i
-                    break
-                else:
-                    continue
-            for i in range(0, 7): #find the best end time, from midnight to 6, as these things often go past midnight. For the purposes of this bot, it will be counted as the same day in the self.poll
-                if self.polltime[no[d].day][i][0] < self.polltime[no[d].day][no[d].tend][0]: #logic for best end time, check to see if the next hour is lower and sets the endpoint there
-                    no[d].tend = i
-                    break
-                else:
-                    continue
-        """
+
         print("XXXXXXXXXXXXXXXXXXXXXX      " + str(self.ballotbox["A"].votes)) 
         sortedballotkeys = sorted(self.ballotbox, key=lambda x: self.ballotbox[x].votes, reverse=True)
     
         for key in sortedballotkeys:
             print(f"############# {key} : {self.ballotbox[key].votes}")
-            
-        
-        
-        """    
-        retstr = "Optimal times:\n-------------\n" + self.poll[no[0].day][0] + "\nfrom " + self.polltime[no[0].day][no[0].tstart][1] + " to " + self.polltime[no[0].day][no[0].tend][1] + "\n Participants for this day: "
-        for i in range(0, len(self.voterlist[no[0].day])):
-            retstr = retstr + str(self.voterlist[no[0].day][i].name) + " "
 
-        if no[1].day != -1:
-            retstr = retstr + "\n-------------\n" + self.poll[no[1].day][0] + "\nfrom " + self.polltime[no[1].day][no[1].tstart][1] + " to " + self.polltime[no[1].day][no[1].tend][1] + "\n Participants for this day: "
-            for i in range(0, len(self.voterlist[no[1].day])):
-                retstr = retstr + str(self.voterlist[no[1].day][i].name) + " "
-
-        if no[2].day != -1:
-            retstr = retstr + "\n-------------\n" + self.poll[no[2].day][0] + "\nfrom " + self.polltime[no[2].day][no[2].tstart][1] + " to " + self.polltime[no[2].day][no[2].tend][1] + "\n Participants for this day: "
-            for i in range(0, len(self.voterlist[no[2].day])):
-                retstr = retstr + str(self.voterlist[no[2].day][i].name) + " "
-        self.sched_up = False
-        """
         return retstr
 
     
@@ -219,38 +176,6 @@ class Ballot():
         global DEBUG_MULTIVOTE
         arg = arg.upper()
         time = time.lower()
-        """
-        if arg == 'A':
-            day = 0
-        elif arg == 'B':
-            day = 1
-        elif arg == 'C':
-            day = 2
-        elif arg == 'D':
-            day = 3
-        elif arg == 'E':
-            day = 4
-        elif arg == 'F':
-            day = 5
-        elif arg == 'G':
-            day = 6
-        elif arg == 'H':
-            day = 7
-        elif arg == 'I':
-            day = 8
-        elif arg == 'J':
-            day = 9
-        elif arg == 'K':
-            day = 10
-        elif arg == 'L':
-            day = 11
-        elif arg == 'M':
-            day = 12
-        elif arg == 'N':
-            day = 13
-        else:
-            day = -1
-        """
 
         if self.sched_up == False:
             return("Sorry! There's no schedule to vote on!")
