@@ -21,9 +21,7 @@ DEBUG_OFFLINEMODE = True
 
 ## TO DO LIST ## ------------------------------------------------------------------------------------------------------------------------------------------------
 
-# make it so each person can only vote on a specified time once
-
-    # if they already voted Monday 1pm-3pm, and vote later for Monday 2pm-10pm, the latest entry should override previous entries for the same day
+# if user already voted Monday 1pm-3pm, and vote later for Monday 2pm-10pm, the latest entry should override previous entries for the same day
 
 # add something to automatically close the poll at a specified time, currently user must use the "!close" command
 
@@ -33,15 +31,9 @@ DEBUG_OFFLINEMODE = True
 
 # look into cogs (currently regular classes are used)
 
-# look into the possibility of using a dictionary instead of a list for the self.poll, there might be a more efficient way to process the self.poll
-
 # see if there's a way for python to interpret time in a way consistant with how users would enter it in the command that also works with intervals (minutes don't matter since it's meant to give the DM a general idea of when to begin)
 
 # Maybe change how the optimal time is chosen, if only one person is arriving much later than everyone else (as is often the case), their 1 vote would currently make the game start very late, even if everyone else can make it earlier
-
-# some things (like the nested lists in self.poll) might be better off as objects
-
-# find a more efficient way to check if a voter already voted (the issue is voterlist is a list of objects, but how does one find a name using "if author in voterlist[day]:" or something similar
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 # START
@@ -94,7 +86,6 @@ class Ballot():
             if key == "" or self.ballotbox[key].votes == 0:
                 continue
             else:
-                #print(f"############# {key} : {self.ballotbox[key].votes}")
                 retstr += key + "\n" + f"from  {self.ballotbox[key].tstart} to {self.ballotbox[key].tend}" + "\n Participants for this day: "
                 for voter in self.ballotbox[key].voters:
                     retstr += f"{voter} "
@@ -139,10 +130,7 @@ class Ballot():
             self.ballotbox[arg].votes += 1 #increment the day's poll first
             print("time: " + time)
 
-            #self.voterlist[day].append(voteobj(author, day, time)) #log this vote into our list for later use
-            #self.voternames[day].append(author) #used for checking that nobody votes twice
-
-            self.ballotbox[arg].voters.append(author) #used for checking that nobody votes twice. Log the voter in a list of voters
+            self.ballotbox[arg].voters.append(author) #Log the voter in a list of voters
             
             timerange = time.split("-") #split the time range into two values in an array with 2 indices, check if it spills over past 12 midnight
             past12 = False
@@ -209,14 +197,6 @@ if DEBUG_OFFLINEMODE == True:
     print(testballot.castvote("A", "2pm-3pm", "username"))
 
     print(testballot.assign())
-    
-    #testballot.__init__()
-    #print(testballot.schedule(["x", "y", "z"]))
-    
-    #print(testballot.castvote("B", "5pm-6pm", "username"))
-    #print(testballot.castvote("B", "5pm-6pm", "username2"))
-
-    #print(testballot.assign())
 
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------  
 
