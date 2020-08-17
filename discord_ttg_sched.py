@@ -2,7 +2,6 @@ import discord
 import pickle
 from discord.ext import commands
 
-#the line above and below both have similar functions, see here https://stackoverflow.com/questions/53980371/discord-bot-does-not-respond-to-commands
 bot = commands.Bot(command_prefix='!')
 
 token = pickle.load(open("token.p", "rb"))
@@ -17,7 +16,7 @@ token = pickle.load(open("token.p", "rb"))
 DEBUG_MULTIVOTE = False
 
 # Runs the code without using commands or putting the bot online
-DEBUG_OFFLINEMODE = True
+DEBUG_OFFLINEMODE = False
 
 ## TO DO LIST ## ------------------------------------------------------------------------------------------------------------------------------------------------
 
