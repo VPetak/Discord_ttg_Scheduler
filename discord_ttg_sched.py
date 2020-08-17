@@ -88,6 +88,7 @@ class Ballot():
                 retstr += key + "\n" + f"from  {self.ballotbox[key].tstart} to {self.ballotbox[key].tend}" + "\n Participants for this day: "
                 for voter in self.ballotbox[key].voters:
                     retstr += f"{voter} "
+                retstr += "\n"
                 stopat -= 1
         self.sched_up = False
         return retstr
@@ -100,7 +101,8 @@ class Ballot():
             self.ballotbox[i] = pollobj() #make a new pollobj for each day scheduled as a possible date
             self.ballotbox[i].name = i
         self.sched_up = True
-        return("Vote on the following days:\n\n\n" + retStr.replace("_", " ") + "\n--------------\nExample: !vote A 5pm-11pm")
+        keys = list(self.ballotbox.keys())
+        return("Vote on the following days:\n" + retStr.replace("_", " ") + "\n--------------\n" + f"Example: !vote {keys[0]} 5pm-11pm")
 
     
     def castvote(self, arg, time, author):
@@ -173,7 +175,8 @@ class Cmds():
             await ctx.send("Please enter the possible times you want to schedule separated by spaces (Use _ for spaces like 'Monday_4/20_4:20PM)")
         else:
             ballot.__init__() #create an instance of the Ballot class
-            await ctx.send(ballot.schedule(args))
+            args_u = [i.upper() for i in args]
+            await ctx.send(ballot.schedule(args_u))
 
     @bot.command()
     async def vote(ctx, arg, time):
