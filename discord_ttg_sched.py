@@ -55,16 +55,6 @@ async def on_ready():
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 # OBJECTS
-
-class voteobj: #this object class logs details of every vote cast
-    def __init__(self, name, day, time):
-        self.name = name
-        self.day = int(day)
-        self.time = str(time)
-    def __str__(self):
-        retString = str(self.name) + ": day" + str(self.day) + " time" + self.time
-        return retString
-
 class pollobj: #this is meant to replace poll, polltime, and voterlist by putting all that info in one object containing the number of votes for a given day, optimal times, and a list of voters
     #the name of the day will be stored in a dictionary
     def __init__(self):
@@ -73,16 +63,6 @@ class pollobj: #this is meant to replace poll, polltime, and voterlist by puttin
         self.tstart = 6
         self.tend = 24
         self.voters = [] #could use length of voters list as the # of votes. Get some easy uniqueness to voters by using a set. If you have a set and add kevin twice, you only have one instance. A set is a dict with no associated values.
-
-
-class resultobj: #this object class is used by the assign() method and stores best day, start of optimal time range, and end of optimal time range
-    def __init__(self, day, tstart, tend):
-        self.day = int(day)
-        self.tstart = tstart
-        self.tend = tend
-    def __str__(self):
-        retString = str(self.name) + ": day" + str(self.day) + " time" + self.time
-        return retString
     
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -90,74 +70,36 @@ class resultobj: #this object class is used by the assign() method and stores be
 
 class Ballot():
     def __init__(self):
-        # each of these represents an hour of the day, 0 is midnight. Although 0-6 technically would be the next day on the calendar,
+        # each int represents an hour of the day, 0 is midnight. Although 0-6 technically would be the next day on the calendar,
         # for the purposes of this 0-6 will count as the same day, so a session can go from Monday 8pm-2am without making things confusing
         # only need for this is to track how late people want to be up, and how late the DM should expect players to be on
-        self.poll = [['A', -1, 0], ['B', -1, 1], ['C', -1, 2], ['D', -1, 3], ['E', -1, 4], ['F', -1, 5], ['G', -1, 6], ['H', -1, 7], ['I', -1, 8], ['J', -1, 9], ['K', -1, 10], ['L', -1, 11], ['M', -1, 12], ['N', -1, 13]]#[day name, votes, index]
-
-
-        self.voterlist = [[], [], [], [], [], [], [], [], [], [], [], [], [], []] # a list of lists, each for corresponds to a day, tracks who voted for which day to avoid double votes and let people correct their votes. Type = voteobj object
-        self.voternames = [[], [], [], [], [], [], [], [], [], [], [], [], [], []] #this list is used specifically for seeing is someone already voted, TO DO: find a more efficient way to do this using only voterlist if possible
-
         self.ballotbox = {} #will contain the voteobj's, replacing the need for voterlist, poll, and polltime
-
-
-        # self.polltime is a list of every hour for every day, used to determine a suggested start and end time
-        self.polltime = []
-        for i in range(0, len(self.poll)):
-            self.polltime.append([[-1, "mdnt"], [-1, "1am"], [-1, "2am"], [-1, "3am"], [-1, "4am"], [-1, "5am"], [-1, "6am"], [-1, "7am"], [-1, "8am"], [-1, "9am"], [-1, "10am"],
-                    [-1, "11am"], [-1, "noon"], [-1, "1pm"], [-1, "2pm"], [-1, "3pm"], [-1, "4pm"], [-1, "5pm"], [-1, "6pm"], [-1, "7pm"], [-1, "8pm"], [-1, "9pm"], [-1, "10pm"], [-1, "11pm"]])
-
         # self.timetuple is used later to convert these strings to their 24hr clock equivalents. Half-hours are not supported but will probably be added later
         self.timetuple = (("12am", 0), ("12:30am", 0),("midnight", 0), ("mdnt", 0), ("-1am", "-1"), ("1am-", "1-"), ("1:30am", 1), ("-2am", "-2"), ("2am-", "2-"), ("2:30am", 2), ("3am", 3), ("3:30am", 3), ("4am", 4), ("4:30am", 4), ("5am", 5), ("5:30am", 5), ("6am", 6), ("6:30am", 6),
                      ("7am", 7),("7:30am", 7), ("8am", 8), ("8:30am", 8), ("9am", 9), ("9:30am", 9), ("10am", 10), ("10:30am", 10), ("11am", 11), ("11:30am", 11), ("12pm", 12), ("12:30pm", 12), ("noon", 12),
                      ("-1pm", "-13"), ("1pm-", "13-"), ("1:30pm", 13), ("-2pm", "-14"), ("2pm-", "14-"), ("2:30pm", 14), ("3pm", 15), ("3:30pm", 15), ("4pm", 16), ("4:30pm", 16), ("5pm", 17), ("5:30pm", 17), ("6pm", 18), ("6:30pm", 18), ("7pm", 19), ("7:30pm", 19),
                      ("8pm", 20), ("8:30pm", 20), ("9pm", 21), ("9:30pm", 21), ("10pm", 22), ("10:30pm", 22), ("11pm", 23), ("11:30pm", 23))
-
         self.sched_up = False
-
-
-
-    def showPoll(self):
-        ret_str = ""
-        for i in range(0, len(poll)): #len(poll) was 14 originally, but I changed it just in case I increase the maximum number of days to vote on
-            if self.poll[i][1] == -1:
-                return ret_str
-            elif self.poll[i][1] == 0:
-                ret_str = ret_str + "\n-------------------------\n" + self.poll[i][0] + ": no votes"
-            else:
-                ret_str = ret_str + "\n-------------------------\n" + str(self.poll[i][0]) + ": " + str(self.poll[i][1]) + "\nTime:\n"
-                for j in range(0,len(self.polltime)): #len(polltime was 23 previously, but doing this should be less work when I add 30 min intervals
-                    if self.polltime[i][j][0] < 1:
-                        continue
-                    else:
-                        ret_str = ret_str + str(self.polltime[i][j][1]) + " " + str(self.polltime[i][j][0]) + "  "
-        return ret_str
-
 
 
     def assign(self): #this function will be called at a certain time (determined by an automatic deadline command) or a manual command
         if self.sched_up == False:
             return str("No schedule to assess")
-
-        polls = self.poll.copy() #making a copy since the original setup requires self.poll to be in its original order when finding the optimal time ranges
-
-        no = [resultobj(0, 7, -1), resultobj(-1, 7, -1), resultobj(-1, 7, -1)] # A list of the top 3, no[0] is for number one and so on. Remember resultobj's contain "day", time start ("tstart"), and time end ("tend")
-
-        #simpler way to get top 3:  store the original index in the self.poll array at index [i][2], then sort it and get those indices from the last 3 in reverse order (as the one with the most votes will be last)
-        polls.sort(key = lambda x: x[1])
-
-        no[0].day = polls[len(polls)-1][2]
-        no[1].day = polls[len(polls)-2][2]
-        no[2].day = polls[len(polls)-3][2]
-
-
-        print("XXXXXXXXXXXXXXXXXXXXXX      " + str(self.ballotbox["A"].votes)) 
         sortedballotkeys = sorted(self.ballotbox, key=lambda x: self.ballotbox[x].votes, reverse=True)
-    
+        retstr = "Optimal times:\n-------------\n"
+        stopat = 3 #how many entries should we return here. Setting this to 3 shows the top 3, 10 would be top 10, 1 would only show the best, and so on
         for key in sortedballotkeys:
-            print(f"############# {key} : {self.ballotbox[key].votes}")
-
+            if stopat <= 0:
+                break
+            if key == "" or self.ballotbox[key].votes == 0:
+                continue
+            else:
+                #print(f"############# {key} : {self.ballotbox[key].votes}")
+                retstr += key + "\n" + f"from  {self.ballotbox[key].tstart} to {self.ballotbox[key].tend}" + "\n Participants for this day: "
+                for voter in self.ballotbox[key].voters:
+                    retstr += f"{voter} "
+                stopat -= 1
+        self.sched_up = False
         return retstr
 
     
